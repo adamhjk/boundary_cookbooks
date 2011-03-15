@@ -4,33 +4,33 @@ This is the apps cookbook. The idea here is to use definitions to lay out how al
 
 ### Databag Item Example
 
-{
-  "config": {
-    "host": "localhost",
-    "port": 55555
-  },
-  "system": {
-    "group": "example",
-    "gid": 400,
-    "uid": 400,
-    "home": "/home/example",
-    "user": "example"
-  },
-  "install": {
-    "repo_url": "http://somehost/builds",
-    "path": "/opt/example"
-  },
-  "id": "example",
-  "version": "0.1",
-  "type": "erlang",
-  "erlang": {
-    "max_ports": 4096,
-    "kernel_polling": true,
-    "async_threads": 5,
-    "cookie": "oatmealrasin",
-    "fullsweep_after": 10
-  }
-}
+    {
+        "config": {
+            "host": "localhost",
+            "port": 55555
+        },
+        "system": {
+            "group": "example",
+            "gid": 400,
+            "uid": 400,
+            "home": "/home/example",
+            "user": "example"
+        },
+        "install": {
+            "repo_url": "http://somehost/builds",
+            "path": "/opt/example"
+        },
+        "id": "example",
+        "version": "0.1",
+        "type": "erlang",
+        "erlang": {
+            "max_ports": 4096,
+            "kernel_polling": true,
+            "async_threads": 5,
+            "cookie": "oatmealrasin",
+            "fullsweep_after": 10
+        }
+    }
 
 The definition expects a certain databag layout, above is an example. 
 
