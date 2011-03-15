@@ -1,0 +1,19 @@
+## Name of the node
+-name <%= @deploy_config["id"] %>@<%= node["fqdn"] %>
+
+## Cookie for distributed erlang
+-setcookie <%= @deploy_config["erlang"]["cookie"] %>
+
+## Enable kernel poll and a few async threads
++K <%= @deploy_config["erlang"]["kernel_polling"] %>
++A <%= @deploy_config["erlang"]["async_threads"] %>
+
+## Increase number of concurrent ports/sockets
+-env ERL_MAX_PORTS <%= @deploy_config["erlang"]["max_ports"] %>
+
+## Tweak GC to run more often
+-env ERL_FULLSWEEP_AFTER <%= @deploy_config["erlang"]["full_sweep_after"] %>
+
+## Don't be an interactive erlang shell
+
++Bd -noinput

@@ -1,0 +1,4 @@
+#!/bin/sh
+export HOME=<%= @options["system"]["home"]%>
+exec 2>&1
+exec chpst -u <%= @options["id"]%> <%= @options["install"]["path"]%>/bin/<%= @options["id"]%>

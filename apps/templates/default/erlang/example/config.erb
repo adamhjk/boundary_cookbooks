@@ -1,0 +1,8 @@
+[
+  %% SASL config
+  {sasl, [
+    {sasl_error_logger, {file, "/var/log/<%= @deploy_config["id"] %>/sasl.log"}},
+    {errlog_type, all}]},
+  {kernel, [{error_logger, {file, "/var/log/<%= @deploy_config["id"] %>/kernel.log"}}]},
+  {example, [{something, "some config thing"}]}
+].
