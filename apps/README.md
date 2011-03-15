@@ -44,7 +44,7 @@ This hash is currently only used by the definition for setting up a system level
 
 #### "install"
 
-Here you specify the http location of the app builds (one directory above "releases" and "upgrades" directories) as well as the filesystem path of where you want your release installed.
+Here you specify the http location of the app builds (one directory above "releases" and "upgrades" directories, where you store your release and upgrade tarballs) as well as the filesystem path of where you want your release installed.
 
 #### "id"
 
