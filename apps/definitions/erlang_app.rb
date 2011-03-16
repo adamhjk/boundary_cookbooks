@@ -103,7 +103,7 @@ define :erlang_app, :name => nil, :app_options => nil do
     # the start script
     template "#{deploy_config["install"]["path"]}/bin/#{deploy_config["id"]}" do
       source "erlang/#{deploy_config["id"]}/#{deploy_config["id"]}.erb"
-      user deploy_config["system"]["user"]
+      owner deploy_config["system"]["user"]
       group deploy_config["system"]["group"]
       mode 0755
       variables :deploy_config => deploy_config, :app_options => params[:app_options]
