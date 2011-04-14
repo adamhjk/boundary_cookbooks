@@ -97,11 +97,11 @@ define :erlang_app, :name => nil, :app_options => nil do
     # upgrade stuff
     #
     
-    remote_file "/tmp/#{filename}" do
+    remote_file "#{deploy_config["install"]["path"]}/releases/#{filename}" do
       source "#{deploy_config["install"]["repo_url"]}/#{deploy_config["id"]}/upgrades/#{filename}"
       not_if "/usr/bin/test -d #{deploy_config["install"]["path"]}/releases/#{deploy_config["version"]}"
     end
-    
+ 
     erl_call "upgrade #{deploy_config["id"]}" do
       node_name "#{deploy_config["id"]}@#{node[:fqdn]}"
       name_type "name"
