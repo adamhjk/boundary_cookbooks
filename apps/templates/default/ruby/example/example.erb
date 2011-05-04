@@ -1,0 +1,6 @@
+#!/bin/sh
+
+exec <%= @deploy_config["install"]["path"] %>/example/bin/example \
+-E <%= @deploy_config["config"]["environment"] %> \
+--port <%= @deploy_config["config"]["port"] %> \
+--config <%= @deploy_config["install"]["path"] %>/etc/example.yml

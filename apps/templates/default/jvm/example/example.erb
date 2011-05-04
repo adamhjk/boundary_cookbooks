@@ -1,0 +1,19 @@
+#!/bin/sh
+
+export JAVA_HOME=<%= @node['java']['java_home'] %>
+
+CONF=<%= @deploy_config["install"]["path"] %>/etc
+HOME=<%= @deploy_config["install"]["path"] %>/lib
+CLASS=<%= @deploy_config["jvm"]["class"] %>
+USER=<%= @deploy_config["system"]["user"] %>
+GC_OPTS="<%= @deploy_config["jvm"]["gc_opts"] %>"
+OPTS="<%= @deploy_config["jvm"]["opts"] %>"
+
+ulimit -a
+
+exec $JAVA_HOME/bin/java \
+  -cp $CONF:$HOME/<%= @deploy_config["id"] %>.jar \
+  $GC_OPTS \
+  $OPTS \
+  -Djava.rmi.server.hostname=<%= node[:fqdn] %> \
+  $CLASS $CONF/<%= @deploy_config["id"] %>.conf

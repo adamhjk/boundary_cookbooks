@@ -1,7 +1,7 @@
 #
 # Author:: Joe Williams (<j@boundary.com>)
 # Cookbook Name:: apps
-# Definition:: erlang_app
+# Definition:: jvm_app
 #
 # Copyright 2011, Boundary
 #
@@ -18,21 +18,15 @@
 # limitations under the License.
 #
 
-define :erlang_app, :name => nil, :app_options => nil do
+define :jvm_app, :name => nil, :app_options => nil do
   
   include_recipe "runit"
+  include_recipe "java"
   
   deploy_config = data_bag_item("apps", params[:name])
 
-  if deploy_config["type"] == "erlang"
+  if deploy_config["type"] == "jvm"
   
-    #
-    # erlang bits
-    #
-    
-    include_recipe "erlang::erl_call"
-    include_recipe "erlang::epmd"
-    
     #
     # user and group
     #
@@ -58,7 +52,7 @@ define :erlang_app, :name => nil, :app_options => nil do
     #
     # install dependencies
     #
-    
+
     if deploy_config["dependencies"]
       if deploy_config["dependencies"]["recipes"]
         deploy_config["dependencies"]["recipes"].each do |dep|
@@ -71,35 +65,6 @@ define :erlang_app, :name => nil, :app_options => nil do
           package dep
         end
       end
-    end
-    
-    #
-    # base install
-    #
-    
-    filename = "#{deploy_config["id"]}_#{deploy_config["version"]}.tar.gz"
-    
-    remote_file "/tmp/#{filename}" do
-      source "#{deploy_config["install"]["repo_url"]}/#{deploy_config["id"]}/releases/#{filename}"
-      not_if "/usr/bin/test -d #{deploy_config["install"]["path"]}"
-    end
-    
-    bash "install #{deploy_config["id"]}" do
-      user "root"
-      cwd "/opt"
-      code <<-EOH
-      (tar zxf /tmp/#{filename} -C /opt)
-      (rm -f /tmp/#{filename})
-      EOH
-      not_if "/usr/bin/test -d #{deploy_config["install"]["path"]}"
-    end
-    
-    bash "#{deploy_config["install"]["path"]} permissions" do
-      user "root"
-      cwd "/opt"
-      code <<-EOH
-      (chown -R #{deploy_config["system"]["user"]}:#{deploy_config["system"]["group"]} #{deploy_config["install"]["path"]})
-      EOH
     end
     
     #
@@ -117,24 +82,34 @@ define :erlang_app, :name => nil, :app_options => nil do
     end
     
     #
-    # upgrade stuff
+    # base install
     #
     
-    remote_file "#{deploy_config["install"]["path"]}/releases/#{filename}" do
-      source "#{deploy_config["install"]["repo_url"]}/#{deploy_config["id"]}/upgrades/#{filename}"
-      not_if "/usr/bin/test -d #{deploy_config["install"]["path"]}/releases/#{deploy_config["version"]}"
+    %w[ lib etc bin ].each do |dir|
+      directory "#{deploy_config["install"]["path"]}/#{dir}" do
+        owner deploy_config["system"]["user"]
+        group deploy_config["system"]["group"]
+        recursive true
+      end
     end
     
-    erl_call "upgrade #{deploy_config["id"]}" do
-      node_name "#{deploy_config["id"]}@#{node[:fqdn]}"
-      name_type "name"
-      cookie deploy_config["erlang"]["cookie"]
+    local_filename = "#{deploy_config["id"]}.jar"
+    remote_filename = "#{deploy_config["id"]}_#{deploy_config["version"]}.jar"
+    
+    remote_file "#{deploy_config["install"]["path"]}/lib/#{local_filename}" do
+      source "#{deploy_config["install"]["repo_url"]}/#{deploy_config["id"]}/#{remote_filename}"
+      backup false
+      checksum deploy_config["checksum"]
+      not_if "/usr/bin/test -d #{deploy_config["install"]["path"]}/lib/#{local_filename}"
+      notifies :restart, resources(:service => "#{deploy_config["id"]}")
+    end
+    
+    bash "#{deploy_config["install"]["path"]} permissions" do
+      user "root"
+      cwd "/opt"
       code <<-EOH
-      release_handler:unpack_release("#{deploy_config["id"]}_#{deploy_config["version"]}"),
-      release_handler:install_release("#{deploy_config["version"]}"),
-      release_handler:make_permanent("#{deploy_config["version"]}").
+      (chown -R #{deploy_config["system"]["user"]}:#{deploy_config["system"]["group"]} #{deploy_config["install"]["path"]})
       EOH
-      not_if "/usr/bin/test -d #{deploy_config["install"]["path"]}/releases/#{deploy_config["version"]}"
     end
     
     #
@@ -164,10 +139,10 @@ define :erlang_app, :name => nil, :app_options => nil do
     #
     # general config
     #
-    
+        
     # the start script
     template "#{deploy_config["install"]["path"]}/bin/#{deploy_config["id"]}" do
-      source "erlang/#{deploy_config["id"]}/#{deploy_config["id"]}.erb"
+      source "jvm/#{deploy_config["id"]}/#{deploy_config["id"]}.erb"
       owner deploy_config["system"]["user"]
       group deploy_config["system"]["group"]
       mode 0755
@@ -175,9 +150,9 @@ define :erlang_app, :name => nil, :app_options => nil do
       notifies :restart, resources(:service => "#{deploy_config["id"]}")
     end
     
-    # erlang config
-    template "#{deploy_config["install"]["path"]}/etc/#{deploy_config["id"]}.config" do
-      source "#{deploy_config["type"]}/#{deploy_config["id"]}/config.erb"
+    # default log4j
+    template "#{deploy_config["install"]["path"]}/etc/log4j.properties" do
+      source "jvm/log4j.properties.erb"
       owner deploy_config["system"]["user"]
       group deploy_config["system"]["group"]
       mode 0644
@@ -185,17 +160,7 @@ define :erlang_app, :name => nil, :app_options => nil do
       notifies :restart, resources(:service => "#{deploy_config["id"]}")
     end
     
-    # erlang vm.args
-    template "#{deploy_config["install"]["path"]}/etc/vm.args" do
-      source "#{deploy_config["type"]}/vm.args.erb"
-      owner deploy_config["system"]["user"]
-      group deploy_config["system"]["group"]
-      mode 0644
-      variables :deploy_config => deploy_config, :app_options => params[:app_options]
-      notifies :restart, resources(:service => "#{deploy_config["id"]}")
-    end
-    
-    # for any configs listed in the databag
+    # other configs listed in the databag
     if deploy_config["config"]["additional_config_templates"]
       deploy_config["config"]["additional_config_templates"].each do |config|
         template "#{deploy_config["install"]["path"]}/etc/#{config}" do
@@ -233,7 +198,7 @@ define :erlang_app, :name => nil, :app_options => nil do
     end
     
   else
-    log "#{params[:name]} app is not of type erlang, not deploying"
+    log "#{params[:name]} app is not of type jvm, not deploying"
   end
   
 end

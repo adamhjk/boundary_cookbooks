@@ -1,9 +1,8 @@
 #
-# Author:: Joe Williams (<j@fastip.com>)
-# Cookbook Name:: apps
-# Recipe:: example
+# Cookbook Name:: git
+# Recipe:: default
 #
-# Copyright 2011, fast_ip
+# Copyright 2008-2009, Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +15,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-erlang_app "example" do
-  app_options "something"
+case node[:platform]
+when "debian", "ubuntu"
+  package "git-core"
+else 
+  package "git"
 end

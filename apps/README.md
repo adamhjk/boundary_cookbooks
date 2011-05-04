@@ -1,8 +1,10 @@
 ### The Apps Cookbook
 
-This is the apps cookbook. The idea here is to use definitions to lay out how all apps of a certain type are deployed. So all apps of the same type get deployed the same way. All apps are deployed to use runit and even setup iptables rules. These definitions make use of databags to store installation and configuration data. Each app is expected to have a databag item in a databag called "apps", the databag item name and app name are expected to be the same. The definition will pull the databag item for an app and deploy it using that data. Additionally the definition can accept an app_options parameter which can be used for config data not stored in a databag, generally this would be based on search or something dynamically determined at chef-client run time. This cookbook includes an example erlang_app recipe and files. The following databag item should work with it.
+This is the apps cookbook. The idea here is to use definitions to lay out how all apps of a certain type are deployed. So all apps of the same type get deployed the same way. All apps are deployed to use runit and even setup iptables rules. These definitions make use of databags to store installation and configuration data. Each app is expected to have a databag item in a databag called "apps", the databag item name and app name are expected to be the same. The definition will pull the databag item for an app and deploy it using that data. Additionally the definition can accept an app_options parameter which can be used for config data not stored in a databag, generally this would be based on search or something dynamically determined at chef-client run time. This cookbook includes an example erlang, jvm and ruby recipe and files. The following databag item should work with it. Note that jvm and erlang applications ues "fat" jars and tarballs while ruby uses git.
 
 ### Databag Item Example
+
+#### erlang
 
     {
         "config": {
@@ -32,6 +34,99 @@ This is the apps cookbook. The idea here is to use definitions to lay out how al
         }
     }
 
+#### jvm
+
+    {
+      "dependencies": {
+        "recipes": [
+        ]
+      },
+      "jvm": {
+        "class": "com.yourcompany.dosomething",
+        "opts": "-XX:+AggressiveOpts",
+        "gc_opts": "-Xms1G -Xmx1G"
+      },
+      "config": {
+        "additional_config_templates": [
+        ],
+        "example": {
+          "client_port": 2181,
+          "data_dir": "/srv/data"
+        },
+        "ulimit": {
+          "n": 2000
+        },
+        "additional_directories": [
+          "/srv/something/data"
+        ]
+      },
+      "system": {
+        "group": "example",
+        "gid": 406,
+        "uid": 406,
+        "home": "/home/example",
+        "user": "example"
+      },
+      "id": "example",
+      "checksum": "jarchecksum",
+      "install": {
+        "repo_url": "http://somehost/builds",
+        "path": "/opt/example"
+      },
+      "type": "jvm",
+      "version": "0.1"
+    }
+
+#### ruby
+
+    {
+      "dependencies": {
+        "system": [
+        ],
+        "recipes": [
+        ],
+        "gems": {
+          "thin": "latest",
+          "json": "latest"
+        }
+      },
+      "config": {
+        "port": 4100,
+        "database": {
+          "port": 3306,
+          "username": "example",
+          "type": "mysql",
+          "database": "example",
+          "hostname": "host",
+          "password": "example"
+        },
+        "git": {
+          "repository": "git@github.com:something/repo.git"
+          "reference": "HEAD"
+        },
+        "environment": "production",
+        "key": {
+          "public": "pub",
+          "private": "private"
+        },
+        "additional_directories": [
+        ]
+      },
+      "system": {
+        "group": "example",
+        "gid": 431,
+        "uid": 431,
+        "home": "/home/example",
+        "user": "example"
+      },
+      "id": "example",
+      "install": {
+        "path": "/opt/example"
+      },
+      "type": "ruby"
+    }
+
+
 The definition expects a certain databag layout, above is an example. 
 
 #### "config"
@@ -58,7 +153,7 @@ For erlang deploys this is the version set in your reltool.config.
 
 The type of application you are deploying.
 
-#### "erlang"
+#### "erlang", "jvm" and "ruby"
 
 This has contains details specific to the type of app you are deploying, generally it contains VM configuration and start up options.
 
