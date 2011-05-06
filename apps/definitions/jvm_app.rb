@@ -100,7 +100,6 @@ define :jvm_app, :name => nil, :app_options => nil do
       source "#{deploy_config["install"]["repo_url"]}/#{deploy_config["id"]}/#{remote_filename}"
       backup false
       checksum deploy_config["checksum"]
-      not_if "/usr/bin/test -d #{deploy_config["install"]["path"]}/lib/#{local_filename}"
       notifies :restart, resources(:service => "#{deploy_config["id"]}")
     end
     
