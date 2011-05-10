@@ -212,7 +212,7 @@ define :ruby_app, :name => nil, :app_options => nil do
       variables :deploy_config => deploy_config, :app_options => params[:app_options]
     end
     
-    %w[ gitconfig deploy_dsa deploy_dsa.pub ].each do |filename|
+    %w[ gitconfig deploy_key deploy_key.pub ].each do |filename|
       template "#{deploy_config["install"]["path"]}/etc/#{filename}" do
         source  "ruby/#{filename}.erb"
         owner   deploy_config["system"]["user"]
