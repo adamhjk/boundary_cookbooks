@@ -34,9 +34,3 @@ service "jenkins" do
   supports :status => true, :restart => true
   action [ :start, :enable ]
 end
-
-cookbook_file "/var/lib/jenkins/.gitconfig" do
-  source "gitconfig"
-  owner "jenkins"
-  group "nogroup"
-end
