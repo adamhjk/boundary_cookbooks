@@ -18,17 +18,24 @@
 # limitations under the License.
 #
 
-
-bash "install jenkins" do
-  cwd "/tmp"
-  code <<-EOH
-  wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
-  echo "deb http://pkg.jenkins-ci.org/debian binary/" > /etc/apt/sources.list.d/jenkins.list
-  apt-get update
-  apt-get install jenkins
-  EOH
-  not_if "/usr/bin/test -d /var/lib/jenkins"
+remote_file "/tmp/jenkins-ci.org.key" do
+  source "http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key"
+  not_if "apt-key list | grep '1024D/D50582E6'
+  notifies :run, execute["add jenkins apt key"], :immediately
 end
+
+execute "add jenkins apt key" do
+  command "apt-key add /tmp/jenkins-ci.org.key"
+  action :nothing
+  notifies :run, execute["apt-get update for jenkins"], :immediately
+end
+
+execute "apt-get update for jenkins" do
+  command "apt-get update"
+  action :nothing
+end
+
+package "jenkins"
 
 service "jenkins" do
   supports :status => true, :restart => true
